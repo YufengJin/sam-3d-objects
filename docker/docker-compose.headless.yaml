@@ -1,0 +1,26 @@
+### docker/docker-compose.headless.yaml
+services:
+  app:
+    container_name: sam3d-container
+    image: ${IMAGE:-sam3d_objects:latest}
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      network: host  # build 阶段用 host 网络，避免 bridge 下 apt 连 archive.ubuntu.com 超时
+      args:
+        PYTHON_VERSION: ${PYTHON_VERSION:-3.10}
+        ENV_NAME: ${ENV_NAME:-py310}
+        CUDA_VERSION: ${CUDA_VERSION:-12.1}
+    network_mode: host
+    tty: true
+    stdin_open: true
+    gpus: all
+    environment:
+      - ENV_NAME=${ENV_NAME:-py310}
+      - PIP_EXTRA_INDEX_URL=${PIP_EXTRA_INDEX_URL:-https://pypi.ngc.nvidia.com https://download.pytorch.org/whl/cu121}
+      # optional, used in your setup.md for Kaolin inference wheels
+      - PIP_FIND_LINKS=${PIP_FIND_LINKS:-}
+      - SAM3D_INSTALL_EXTRAS=${SAM3D_INSTALL_EXTRAS:-0}
+    volumes:
+      - ..:/workspace
+    working_dir: /workspace

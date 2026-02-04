@@ -1,0 +1,30 @@
+### docker/docker-compose.x11.yaml
+services:
+  app:
+    container_name: sam3d-container
+    image: ${IMAGE:-sam3d_objects:latest}
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      network: host  # build 阶段用 host 网络，避免 bridge 下 apt 连 archive.ubuntu.com 超时
+      args:
+        PYTHON_VERSION: ${PYTHON_VERSION:-3.10}
+        ENV_NAME: ${ENV_NAME:-py310}
+        CUDA_VERSION: ${CUDA_VERSION:-12.1}
+    network_mode: host
+    tty: true
+    stdin_open: true
+    gpus: all
+    environment:
+      - ENV_NAME=${ENV_NAME:-py310}
+      - DISPLAY=${DISPLAY}
+      - XAUTHORITY=${XAUTHORITY:-/root/.Xauthority}
+      - QT_X11_NO_MITSHM=1
+      - PIP_EXTRA_INDEX_URL=${PIP_EXTRA_INDEX_URL:-https://pypi.ngc.nvidia.com https://download.pytorch.org/whl/cu121}
+      - PIP_FIND_LINKS=${PIP_FIND_LINKS:-}
+      - SAM3D_INSTALL_EXTRAS=${SAM3D_INSTALL_EXTRAS:-0}
+    volumes:
+      - ..:/workspace
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${XAUTHORITY:-$HOME/.Xauthority}:/root/.Xauthority:ro
+    working_dir: /workspace
